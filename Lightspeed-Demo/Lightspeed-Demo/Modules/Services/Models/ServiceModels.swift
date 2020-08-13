@@ -28,6 +28,8 @@ struct Person: Codable {
 enum Gender: String, Codable {
     case female = "female"
     case male = "male"
+    case hermaphrodite = "hermaphrodite"
+    case none = "none"
     case notAvailable = "n/a"
 }
 

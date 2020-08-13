@@ -23,8 +23,8 @@ extension SWAPIService {
         }
     }
     
-    func getPeopleAndPlanets() -> AnyPublisher<(PeopleResponse,[Planet]), Error> {
-        let peoplePublisher = getPeople()
+    func getPeopleAndPlanets(withPage page: Int) -> AnyPublisher<(PeopleResponse,[Planet]), Error> {
+        let peoplePublisher = getPeople(atPage: page)
         let planetPublisher = peoplePublisher.flatMap(maxPublishers: .max(1), { self.getPlanetsforPeople(person: $0.results) })
         return Publishers.Zip(peoplePublisher, planetPublisher).eraseToAnyPublisher()
     }
@@ -49,9 +49,35 @@ extension SWAPIService {
                     .appending(path: NetworkPaths.people.path))
     }
     
+    func contructGetPeopleWithPageRequest(atPage page: Int) throws -> URLRequest {
+        return try URLRequest.constructRequest(
+                fromComponents: SWAPI
+                    .baseURLComponents(endpoint: currentEndpoint)
+                    .appending(path: NetworkPaths.people.path, queryItems: [
+                        URLQueryItem(name: "page", value: String(page))
+                    ]))
+    }
+    
+    
     func getPeoplePublisher() throws -> URLSession.DataTaskPublisher {
         let request = try contructGetPeopleRequest()
         return dataTaskPublisher(for: request)
+    }
+    
+    func getPeopleAtPagePublisher(atPage page: Int) throws -> URLSession.DataTaskPublisher {
+        let request = try contructGetPeopleWithPageRequest(atPage: page)
+        return dataTaskPublisher(for: request)
+    }
+    
+    func getPeople(atPage page: Int) -> AnyPublisher<PeopleResponse, Error> {
+        do {
+            let request = try contructGetPeopleWithPageRequest(atPage: page)
+            return get(with: request)
+        }
+        catch {
+            return Fail(error: error)
+            .eraseToAnyPublisher()
+        }
     }
     
     func getPeople() -> AnyPublisher<PeopleResponse, Error> {

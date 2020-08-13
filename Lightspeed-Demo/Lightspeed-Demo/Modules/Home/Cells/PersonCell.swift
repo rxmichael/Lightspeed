@@ -57,6 +57,7 @@ class PersonCell: UITableViewCell {
     func setupImageView() {
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         logoImageView.contentMode = .scaleAspectFit
+        logoImageView.clipsToBounds = true
     }
     
     func setupStackView() {
@@ -64,6 +65,7 @@ class PersonCell: UITableViewCell {
         labelStackView.addArrangedSubview(planetLabel)
         labelStackView.axis = .horizontal
         labelStackView.spacing = .leastNormalMagnitude
+        labelStackView.distribution = .equalCentering
         labelStackView.translatesAutoresizingMaskIntoConstraints = false
     }
     
@@ -74,9 +76,12 @@ class PersonCell: UITableViewCell {
             nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor,
             constant: Padding.inner),
             
+            logoImageView.widthAnchor.constraint(equalToConstant: 50),
+            logoImageView.heightAnchor.constraint(equalToConstant: 25),
             labelStackView.topAnchor.constraint(equalTo: nameLabel.bottomAnchor,
                                                 constant: Padding.inner),
             labelStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            labelStackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
             labelStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor,
             constant: -Padding.inner),
             ])

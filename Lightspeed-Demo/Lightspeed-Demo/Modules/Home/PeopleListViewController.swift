@@ -26,7 +26,7 @@ struct CellInfo {
 class PeopleListViewController: UIViewController, PeopleListView {
     
     let tableView = UITableView()
-    let spinner = UIActivityIndicatorView(style: .medium)
+    let spinner = UIActivityIndicatorView(style: .large)
     let refreshControl = UIRefreshControl()
     
      private var subscriptions: Set<AnyCancellable> = []
@@ -64,6 +64,7 @@ class PeopleListViewController: UIViewController, PeopleListView {
         view.addSubview(spinner)
         
         tableView.tableFooterView = UIView()
+        tableView.backgroundColor = Palette.personCell
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = PersonCell.estimatedHeight()
@@ -72,7 +73,7 @@ class PeopleListViewController: UIViewController, PeopleListView {
         tableView.register(PersonCell.self)
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.showsVerticalScrollIndicator = false
+        tableView.showsVerticalScrollIndicator = true
         tableView.contentInsetAdjustmentBehavior = .never
         
         spinner.translatesAutoresizingMaskIntoConstraints = false
@@ -106,7 +107,7 @@ class PeopleListViewController: UIViewController, PeopleListView {
     }
     
     @objc func refresh() {
-        presenter.fetchInfo()
+        presenter.fetchInfo(refresh: true)
     }
 }
 
@@ -128,5 +129,11 @@ extension PeopleListViewController: UITableViewDataSource {
 extension PeopleListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         presenter.didPressPersonDetails(forPerson: cellInfo[indexPath.row].person)
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == cellInfo.count-1 {
+            presenter.fetchInfo()
+        }
     }
 }
