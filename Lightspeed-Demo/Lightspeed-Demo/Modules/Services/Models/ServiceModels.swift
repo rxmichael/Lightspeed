@@ -25,6 +25,27 @@ struct Person: Codable {
     let url: URL
 }
 
+extension Person: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(height)
+        hasher.combine(mass)
+        hasher.combine(hairColor)
+        hasher.combine(skinColor)
+        hasher.combine(eyeColor)
+        hasher.combine(birthYear)
+        hasher.combine(name)
+        hasher.combine(gender)
+        hasher.combine(homeworld)
+        hasher.combine(species)
+        hasher.combine(vehicles)
+        hasher.combine(starships)
+        hasher.combine(created)
+        hasher.combine(edited)
+        hasher.combine(url)
+    }
+}
+
 enum Gender: String, Codable {
     case female = "female"
     case male = "male"
@@ -54,6 +75,24 @@ struct Planet: Codable {
     let films: [URL]
     let created, edited: String
     let url: URL
+}
+
+extension Planet: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(rotationPeriod)
+        hasher.combine(orbitalPeriod)
+        hasher.combine(climate)
+        hasher.combine(gravity)
+        hasher.combine(terrain)
+        hasher.combine(surfaceWater)
+        hasher.combine(population)
+        hasher.combine(residents)
+        hasher.combine(films)
+        hasher.combine(created)
+        hasher.combine(edited)
+        hasher.combine(url)
+    }
 }
 
 extension Person {

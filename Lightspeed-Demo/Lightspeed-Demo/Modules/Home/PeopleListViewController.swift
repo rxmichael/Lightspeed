@@ -18,9 +18,20 @@ protocol PeopleListView: View {
     var cellInfo: [CellInfo] { get set }
 }
 
+enum Section {
+  case main
+}
+
 struct CellInfo {
     var person: Person
     var planet: Planet
+}
+
+extension CellInfo: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(person)
+        hasher.combine(planet)
+    }
 }
 
 class PeopleListViewController: UIViewController, PeopleListView {
@@ -29,7 +40,12 @@ class PeopleListViewController: UIViewController, PeopleListView {
     let spinner = UIActivityIndicatorView(style: .large)
     let refreshControl = UIRefreshControl()
     
-     private var subscriptions: Set<AnyCancellable> = []
+    typealias DataSource                = UITableViewDiffableDataSource<Section, CellInfo>
+    typealias Snapshot                  = NSDiffableDataSourceSnapshot<Section, CellInfo>
+    
+    private var subscriptions: Set<AnyCancellable> = []
+    
+    private var dataSource: DataSource!
     
     lazy var presenter = PeopleListPresenter(view: self)
     
@@ -47,7 +63,7 @@ class PeopleListViewController: UIViewController, PeopleListView {
     
     var cellInfo: [CellInfo] = [] {
         didSet {
-            tableView.reloadData()
+            updateTable(with: cellInfo, animated: !cellInfo.isEmpty)
         }
     }
     
@@ -71,7 +87,6 @@ class PeopleListViewController: UIViewController, PeopleListView {
         tableView.separatorStyle = .singleLine
         tableView.separatorInset = .zero
         tableView.register(PersonCell.self)
-        tableView.dataSource = self
         tableView.delegate = self
         tableView.showsVerticalScrollIndicator = true
         tableView.contentInsetAdjustmentBehavior = .never
@@ -90,6 +105,8 @@ class PeopleListViewController: UIViewController, PeopleListView {
         tableView.refreshControl = refreshControl
         
         createConstraints()
+        
+        setUpDataSource()
         
         presenter.load()
     }
@@ -111,18 +128,23 @@ class PeopleListViewController: UIViewController, PeopleListView {
     }
 }
 
-extension PeopleListViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return cellInfo.count
+extension PeopleListViewController {
+    func setUpDataSource() {
+        dataSource = DataSource(tableView: tableView) { [weak self] (tableView, indexPath, _) -> UITableViewCell? in
+            guard let cellInfoAtRow = self?.cellInfo[indexPath.row] else {
+                return UITableViewCell()
+            }
+            let cell = tableView.dequeueReusableCell(ofType: PersonCell.self, for: indexPath)
+            cell.setup(withInfo: cellInfoAtRow)
+            return cell
+        }
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(ofType: PersonCell.self, for: indexPath)
-        cell.setup(withInfo: cellInfo[indexPath.row])
-        return cell
+    func updateTable(with info: [CellInfo], animated: Bool = true) {
+        var snapshot = Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(info)
+        dataSource.apply(snapshot, animatingDifferences: animated)
     }
 }
 
